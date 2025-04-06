@@ -18,12 +18,21 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/usb.h>
 #include <zmk/wpm.h>
 
+#include "widgets/battery_status.h"
+#include "widgets/output_status.h"
+
+
 #include "battery.h"
 #include "layer.h"
 #include "output.h"
 #include "profile.h"
 #include "screen.h"
 #include "wpm.h"
+
+static struct battery_status_widget battery_status;
+static struct output_status_widget output_status;
+
+
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
@@ -210,6 +219,9 @@ ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
  **/
 
 int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
+    lv_obj_align(widget_battery_status_obj(&battery_status), LV_ALIGN_TOP_RIGHT, -4, 2);
+    lv_obj_align(widget_output_status_obj(&output_status), LV_ALIGN_TOP_RIGHT, -26, 2);
+
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, CANVAS_HEIGHT, CANVAS_WIDTH);
 
@@ -218,9 +230,9 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     lv_canvas_set_buffer(canvas, widget->cbuf, CANVAS_HEIGHT, CANVAS_HEIGHT, LV_IMG_CF_TRUE_COLOR);
 
     sys_slist_append(&widgets, &widget->node);
-    widget_battery_status_init();
+    widget_battery_status_init(&battery_status, canvas);
     widget_layer_status_init();
-    widget_output_status_init();
+    widget_output_status_init(&output_status, canvas);
     widget_wpm_status_init();
 
 #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
