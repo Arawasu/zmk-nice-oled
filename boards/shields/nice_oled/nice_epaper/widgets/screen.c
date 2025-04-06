@@ -17,24 +17,27 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/keymap.h>
 #include <zmk/usb.h>
 #include <zmk/wpm.h>
+#include <zmk/display/widgets/battery_status.h>
+#include <zmk/display/widgets/output_status.h>
 
-#include "widgets/battery_status.h"
-#include "widgets/output_status.h"
 
-
-#include "battery.h"
 #include "layer.h"
-#include "output.h"
 #include "profile.h"
 #include "screen.h"
 #include "wpm.h"
 
-static struct battery_status_widget battery_status;
-static struct output_status_widget output_status;
-
 
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_BATTERY_STATUS)
+static struct zmk_widget_battery_status battery_status_widget;
+#endif
+
+#if IS_ENABLED(CONFIG_ZMK_WIDGET_OUTPUT_STATUS)
+static struct zmk_widget_output_status output_status_widget;
+#endif
+
 
 /**
  * luna
@@ -71,12 +74,8 @@ static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status
 
     // Draw widgets
     draw_background(canvas);
-    draw_output_status(canvas, state);
-    // TODO: charging animation START
     // change the position
     draw_wpm_status(canvas, state);
-    draw_battery_status(canvas, state);
-    // TODO: charging animation END
     draw_profile_status(canvas, state);
     draw_layer_status(canvas, state);
 
@@ -88,40 +87,32 @@ static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status
  * Battery status
  **/
 
-static void set_battery_status(struct zmk_widget_screen *widget,
-                               struct battery_status_state state) {
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-    widget->state.charging = state.usb_present;
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+// static void set_battery_status(struct zmk_widget_screen *widget,
+//                                struct battery_status_state state) {
+// #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+//     widget->state.charging = state.usb_present;
+// #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
 
-    widget->state.battery = state.level;
+//     widget->state.battery = state.level;
 
-    draw_canvas(widget->obj, widget->cbuf, &widget->state);
-}
+//     draw_canvas(widget->obj, widget->cbuf, &widget->state);
+// }
 
-static void battery_status_update_cb(struct battery_status_state state) {
-    struct zmk_widget_screen *widget;
-    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_status(widget, state); }
-}
+// static void battery_status_update_cb(struct battery_status_state state) {
+//     struct zmk_widget_screen *widget;
+//     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_status(widget, state); }
+// }
 
-static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
-    const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
+// static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
+//     const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
 
-    return (struct battery_status_state){
-        .level = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-        .usb_present = zmk_usb_is_powered(),
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
-    };
-}
-
-ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct battery_status_state,
-                            battery_status_update_cb, battery_status_get_state);
-
-ZMK_SUBSCRIPTION(widget_battery_status, zmk_battery_state_changed);
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+//     return (struct battery_status_state){
+//         .level = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
+// #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+//         .usb_present = zmk_usb_is_powered(),
+// #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+//     };
+// }
 
 /**
  * Layer status
@@ -219,9 +210,6 @@ ZMK_SUBSCRIPTION(widget_wpm_status, zmk_wpm_state_changed);
  **/
 
 int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
-    lv_obj_align(widget_battery_status_obj(&battery_status), LV_ALIGN_TOP_RIGHT, -4, 2);
-    lv_obj_align(widget_output_status_obj(&output_status), LV_ALIGN_TOP_RIGHT, -26, 2);
-
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, CANVAS_HEIGHT, CANVAS_WIDTH);
 
@@ -230,26 +218,30 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     lv_canvas_set_buffer(canvas, widget->cbuf, CANVAS_HEIGHT, CANVAS_HEIGHT, LV_IMG_CF_TRUE_COLOR);
 
     sys_slist_append(&widgets, &widget->node);
-    widget_battery_status_init(&battery_status, canvas);
     widget_layer_status_init();
-    widget_output_status_init(&output_status, canvas);
     widget_wpm_status_init();
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
-    zmk_widget_luna_init(&luna_widget, canvas);
+    zmk_widget_battery_status_init(&battery_status_widget, canvas);
+    lv_obj_align(zmk_widget_battery_status_obj(&battery_status_widget), LV_ALIGN_TOP_RIGHT, -4, 2);
 
-    // ori: lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 36, 0);
-    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 100, 15);
-#endif
+    zmk_widget_output_status_init(&output_status_widget, canvas);
+    lv_obj_align(zmk_widget_output_status_obj(&output_status_widget), LV_ALIGN_TOP_RIGHT, -28, 2);
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
-    zmk_widget_hid_indicators_init(&hid_indicators_widget, canvas);
-#endif
+    #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
+        zmk_widget_luna_init(&luna_widget, canvas);
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
-    zmk_widget_modifiers_init(&modifiers_widget, canvas); // Inicializar el widget de modifiers
-#endif
-    return 0;
+        // ori: lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 36, 0);
+        lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 100, 15);
+    #endif
+
+    #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
+        zmk_widget_hid_indicators_init(&hid_indicators_widget, canvas);
+    #endif
+
+    #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
+        zmk_widget_modifiers_init(&modifiers_widget, canvas); // Inicializar el widget de modifiers
+    #endif
+        return 0;
 }
 
 lv_obj_t *zmk_widget_screen_obj(struct zmk_widget_screen *widget) { return widget->obj; }
