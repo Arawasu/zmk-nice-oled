@@ -148,12 +148,12 @@ static void draw_label(lv_obj_t *canvas, const struct status_state *state) {
 }
 
 void draw_wpm_status(lv_obj_t *canvas, const struct status_state *state) {
-    draw_gauge(canvas, state);
-    draw_needle(canvas, state);
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM_LUNA)
-#else
-    draw_grid(canvas);
-    draw_graph(canvas, state);
-#endif
-    draw_label(canvas, state);
+    #if !IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM_LUNA)
+        draw_gauge(canvas, state);
+        draw_needle(canvas, state);
+        draw_grid(canvas);
+        draw_graph(canvas, state);
+    #endif
+        draw_label(canvas, state);
 }
+    
