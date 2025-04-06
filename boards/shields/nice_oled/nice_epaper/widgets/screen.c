@@ -140,38 +140,6 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state, laye
 
 ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 
-/**
- * Output status
- **/
-
-static void set_output_status(struct zmk_widget_screen *widget,
-                              const struct output_status_state *state) {
-    widget->state.selected_endpoint = state->selected_endpoint;
-    widget->state.active_profile_index = state->active_profile_index;
-    widget->state.active_profile_connected = state->active_profile_connected;
-    widget->state.active_profile_bonded = state->active_profile_bonded;
-
-    draw_canvas(widget->obj, widget->cbuf, &widget->state);
-}
-
-static void output_status_update_cb(struct output_status_state state) {
-    struct zmk_widget_screen *widget;
-    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_output_status(widget, &state); }
-}
-
-static struct output_status_state output_status_get_state(const zmk_event_t *_eh) {
-    return (struct output_status_state){
-        .selected_endpoint = zmk_endpoints_selected(),
-        .active_profile_index = zmk_ble_active_profile_index(),
-        .active_profile_connected = zmk_ble_active_profile_is_connected(),
-        .active_profile_bonded = !zmk_ble_active_profile_is_open(),
-    };
-}
-
-ZMK_DISPLAY_WIDGET_LISTENER(widget_output_status, struct output_status_state,
-                            output_status_update_cb, output_status_get_state)
-ZMK_SUBSCRIPTION(widget_output_status, zmk_endpoint_changed);
-
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
 ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 #endif
