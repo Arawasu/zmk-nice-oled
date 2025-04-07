@@ -28,9 +28,11 @@ static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
+    uint8_t active_profile_index;
     bool active_profile_connected;
     bool active_profile_bonded;
 };
+
 /**
  * luna
  **/
