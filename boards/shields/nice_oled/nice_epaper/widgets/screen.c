@@ -182,23 +182,19 @@ void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
     lv_draw_rect_dsc_t rect_white_dsc;
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
 
-    // Outer battery shell
-    lv_canvas_draw_rect(canvas, 0, 2, 29, 13, &rect_white_dsc);
-    // Inner background
-    lv_canvas_draw_rect(canvas, 1, 3, 27, 11, &rect_black_dsc);
-    // Battery fill
-    lv_canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 9, &rect_white_dsc);
-    // Nub
-    lv_canvas_draw_rect(canvas, 30, 5, 3, 7, &rect_white_dsc);
-    lv_canvas_draw_rect(canvas, 31, 6, 1, 5, &rect_black_dsc);
+    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_white_dsc); // outer
+    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_black_dsc); // inner
+    lv_canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 8, &rect_white_dsc); // fill
+    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_white_dsc); // nub
+    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_black_dsc); // inner nub
 
-    // Charging icon (bolt)
     if (state->charging) {
         lv_draw_img_dsc_t img_dsc;
         lv_draw_img_dsc_init(&img_dsc);
-        lv_canvas_draw_img(canvas, 9, 2, &bolt, &img_dsc);
+        lv_canvas_draw_img(canvas, 9, -1, &bolt, &img_dsc); // restore floaty bolt
     }
 }
+
 
 static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state) {
     lv_obj_t *canvas = lv_obj_get_child(widget, 0);
@@ -263,7 +259,7 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
 
 #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
     zmk_widget_luna_init(&luna_widget, canvas);
-    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 66, 22);
+    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 60, 22);
 #endif
 
 // #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
