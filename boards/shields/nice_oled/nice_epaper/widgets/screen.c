@@ -51,6 +51,24 @@ static struct zmk_widget_modifiers modifiers_widget; // Declarar el widget de mo
 static struct zmk_widget_hid_indicators hid_indicators_widget;
 #endif
 
+struct battery_status_state {
+    uint8_t level;
+    bool usb_present;
+};
+
+static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
+    return (struct battery_status_state){
+        .level = zmk_battery_state_of_charge(),
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+        .usb_present = zmk_usb_is_powered(),
+#else
+        .usb_present = false,
+#endif
+    };
+}
+
+
+
 static void set_battery_status(struct zmk_widget_screen *widget, struct battery_status_state state)
 {
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
