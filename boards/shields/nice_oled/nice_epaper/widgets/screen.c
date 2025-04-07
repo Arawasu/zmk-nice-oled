@@ -25,6 +25,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
+LV_IMG_DECLARE(bolt);
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -132,30 +133,22 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif
 
-static void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
-    lv_draw_rect_dsc_t border_dsc;
-    init_rect_dsc(&border_dsc, LVGL_FOREGROUND);
+void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_rect_dsc_t rect_black_dsc;
+    init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
+    lv_draw_rect_dsc_t rect_white_dsc;
+    init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
 
-    lv_draw_rect_dsc_t fill_dsc;
-    init_rect_dsc(&fill_dsc, LVGL_FOREGROUND);
+    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_black_dsc);
+    lv_canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 8, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_black_dsc);
 
-    const int x = 48;  // Instead of 108
-    const int y = 3;
-    const int width = 16;
-    const int height = 8;    
-
-    // Outline
-    lv_canvas_draw_rect(canvas, x, y, width, height, &border_dsc);
-
-    // Fill based on battery level
-    int fill = (width - 2) * state->battery / 100;
-    lv_canvas_draw_rect(canvas, x + 1, y + 1, fill, height - 2, &fill_dsc);
-
-    // Optional charging indicator
     if (state->charging) {
-        lv_draw_label_dsc_t label_dsc;
-        init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_12, LV_TEXT_ALIGN_CENTER);
-        lv_canvas_draw_text(canvas, x + 6, y - 1, 16, &label_dsc, "+");
+        lv_draw_img_dsc_t img_dsc;
+        lv_draw_img_dsc_init(&img_dsc);
+        lv_canvas_draw_img(canvas, 9, -1, &bolt, &img_dsc);
     }
 }
 
