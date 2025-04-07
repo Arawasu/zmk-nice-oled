@@ -134,36 +134,41 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif
 
 void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
-    // Init descriptors
-    lv_draw_rect_dsc_t rect_fg_dsc;
-    lv_draw_rect_dsc_t rect_bg_dsc;
-    lv_draw_rect_dsc_init(&rect_fg_dsc);
-    lv_draw_rect_dsc_init(&rect_bg_dsc);
-    rect_fg_dsc.bg_color = lv_color_white();
-    rect_fg_dsc.border_width = 0;
-    rect_fg_dsc.radius = 0;
-    rect_bg_dsc.bg_color = lv_color_black();
-    rect_bg_dsc.border_width = 0;
-    rect_bg_dsc.radius = 0;
+    const int x = 0;
+    const int y = 2;
 
-    // Battery outer shell
-    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_fg_dsc);   // border
-    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_bg_dsc);   // interior
+    const int width = 26;
+    const int height = 12;
+    const int nub_width = 2;
+    const int nub_height = 6;
+    const int nub_offset = (height - nub_height) / 2;
 
-    // Battery fill level (scale 0–100% to 0–27 px)
-    int fill = (state->battery * 27 + 99) / 100;
-    if (fill > 27) fill = 27;
-    lv_canvas_draw_rect(canvas, 2, 4, fill, 8, &rect_fg_dsc);  // filled bar
+    lv_draw_rect_dsc_t outline_dsc;
+    init_rect_dsc(&outline_dsc, LVGL_FOREGROUND);
+    outline_dsc.radius = 2;
+    lv_canvas_draw_rect(canvas, x, y, width, height, &outline_dsc);
 
-    // Battery terminal nub
-    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_fg_dsc);    // white outer
-    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_bg_dsc);    // black center
+    lv_draw_rect_dsc_t bg_dsc;
+    init_rect_dsc(&bg_dsc, LVGL_BACKGROUND);
+    bg_dsc.radius = 1;
+    lv_canvas_draw_rect(canvas, x + 1, y + 1, width - 2, height - 2, &bg_dsc);
 
-    // Optional charging bolt overlay
+    int battery_width = (width - 4) * state->battery / 100;
+    if (battery_width > 0) {
+        lv_draw_rect_dsc_t fill_dsc;
+        init_rect_dsc(&fill_dsc, LVGL_FOREGROUND);
+        fill_dsc.radius = 1;
+        lv_canvas_draw_rect(canvas, x + 2, y + 2, battery_width, height - 4, &fill_dsc);
+    }
+
+    lv_draw_rect_dsc_t nub_dsc;
+    init_rect_dsc(&nub_dsc, LVGL_FOREGROUND);
+    lv_canvas_draw_rect(canvas, x + width, y + nub_offset, nub_width, nub_height, &nub_dsc);
+
     if (state->charging) {
         lv_draw_img_dsc_t img_dsc;
         lv_draw_img_dsc_init(&img_dsc);
-        lv_canvas_draw_img(canvas, 9, 3, &bolt, &img_dsc); // bolt centered in battery
+        lv_canvas_draw_img(canvas, x + 7, y - 2, &bolt, &img_dsc);
     }
 }
 
