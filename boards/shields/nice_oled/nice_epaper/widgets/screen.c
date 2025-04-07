@@ -26,7 +26,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
 
-struct output_status_state;
+struct output_status_state {
+    struct zmk_endpoint_instance selected_endpoint;
+    bool active_profile_connected;
+    bool active_profile_bonded;
+};
 /**
  * luna
  **/
