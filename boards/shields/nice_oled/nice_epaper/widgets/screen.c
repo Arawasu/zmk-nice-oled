@@ -27,15 +27,15 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static struct zmk_widget_luna luna_widget;
 #endif
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
-#include "modifiers.h"
-static struct zmk_widget_modifiers modifiers_widget;
-#endif
+// #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
+// #include "modifiers.h"
+// static struct zmk_widget_modifiers modifiers_widget;
+// #endif
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
-#include "hid_indicators.h"
-static struct zmk_widget_hid_indicators hid_indicators_widget;
-#endif
+// #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
+// #include "hid_indicators.h"
+// static struct zmk_widget_hid_indicators hid_indicators_widget;
+// #endif
 
 extern const lv_img_dsc_t bolt;
 
@@ -266,13 +266,13 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 66, 22);
 #endif
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
-    zmk_widget_hid_indicators_init(&hid_indicators_widget, canvas);
-#endif
+// #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
+//     zmk_widget_hid_indicators_init(&hid_indicators_widget, canvas);
+// #endif
 
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
-    zmk_widget_modifiers_init(&modifiers_widget, canvas);
-#endif
+// #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS)
+//     zmk_widget_modifiers_init(&modifiers_widget, canvas);
+// #endif
 
     return 0;
 }
