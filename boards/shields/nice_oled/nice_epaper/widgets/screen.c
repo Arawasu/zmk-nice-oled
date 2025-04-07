@@ -131,6 +131,34 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif
 
+static void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_rect_dsc_t border_dsc;
+    init_rect_dsc(&border_dsc, LVGL_FOREGROUND);
+
+    lv_draw_rect_dsc_t fill_dsc;
+    init_rect_dsc(&fill_dsc, LVGL_FOREGROUND);
+
+    const int x = 108; // Adjust if needed
+    const int y = 3;
+    const int width = 20;
+    const int height = 10;
+
+    // Outline
+    lv_canvas_draw_rect(canvas, x, y, width, height, &border_dsc);
+
+    // Fill based on battery level
+    int fill = (width - 2) * state->battery / 100;
+    lv_canvas_draw_rect(canvas, x + 1, y + 1, fill, height - 2, &fill_dsc);
+
+    // Optional charging indicator
+    if (state->charging) {
+        lv_draw_label_dsc_t label_dsc;
+        init_label_dsc(&label_dsc, LVGL_FOREGROUND, &lv_font_montserrat_12, LV_TEXT_ALIGN_CENTER);
+        lv_canvas_draw_text(canvas, x + 6, y - 1, 16, &label_dsc, "+");
+    }
+}
+
+
 /**
  * Draw canvas
  **/
@@ -148,10 +176,7 @@ static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status
     // Clear screen
     lv_canvas_draw_rect(canvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, &rect_black_dsc);
 
-    /*** Battery text ***/
-    char battery_text[10];
-    snprintf(battery_text, sizeof(battery_text), "%d%%", state->battery);
-    lv_canvas_draw_text(canvas, 90, 0, 64, &label_dsc, battery_text);
+    draw_battery(canvas, state);
 
     /*** Output status icon ***/
     char output_text[10] = {};

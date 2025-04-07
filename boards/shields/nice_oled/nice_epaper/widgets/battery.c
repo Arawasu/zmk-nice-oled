@@ -1,89 +1,89 @@
-/*
- * Copyright (c) 2020 The ZMK Contributors
- *
- * SPDX-License-Identifier: MIT
- */
+#include <zephyr/kernel.h>
+#include "battery.h"
+#include "../assets/custom_fonts.h"
 
- #include <zephyr/kernel.h>
+LV_IMG_DECLARE(bolt);
 
- #include <zephyr/logging/log.h>
- LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
- 
- #include <zmk/display.h>
- #include <zmk/display/widgets/output_status.h>
- #include <zmk/event_manager.h>
- #include <zmk/events/ble_active_profile_changed.h>
- #include <zmk/events/endpoint_changed.h>
- #include <zmk/usb.h>
- #include <zmk/ble.h>
- #include <zmk/endpoints.h>
- 
- static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
- 
- struct output_status_state {
-     struct zmk_endpoint_instance selected_endpoint;
-     bool active_profile_connected;
-     bool active_profile_bonded;
- };
- 
- static struct output_status_state get_state(const zmk_event_t *_eh) {
-     return (struct output_status_state){.selected_endpoint = zmk_endpoints_selected(),
-                                         .active_profile_connected =
-                                             zmk_ble_active_profile_is_connected(),
-                                         .active_profile_bonded = !zmk_ble_active_profile_is_open()};
-     ;
- }
- 
- static void set_status_symbol(lv_obj_t *label, struct output_status_state state) {
-     char text[20] = {};
- 
-     switch (state.selected_endpoint.transport) {
-     case ZMK_TRANSPORT_USB:
-         strcat(text, LV_SYMBOL_USB);
-         break;
-     case ZMK_TRANSPORT_BLE:
-         if (state.active_profile_bonded) {
-             if (state.active_profile_connected) {
-                 snprintf(text, sizeof(text), LV_SYMBOL_WIFI " %i " LV_SYMBOL_OK,
-                          state.selected_endpoint.ble.profile_index + 1);
-             } else {
-                 snprintf(text, sizeof(text), LV_SYMBOL_WIFI " %i " LV_SYMBOL_CLOSE,
-                          state.selected_endpoint.ble.profile_index + 1);
-             }
-         } else {
-             snprintf(text, sizeof(text), LV_SYMBOL_WIFI " %i " LV_SYMBOL_SETTINGS,
-                      state.selected_endpoint.ble.profile_index + 1);
-         }
-         break;
-     }
- 
-     lv_label_set_text(label, text);
- }
- 
- static void output_status_update_cb(struct output_status_state state) {
-     struct zmk_widget_output_status *widget;
-     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_status_symbol(widget->obj, state); }
- }
- 
- ZMK_DISPLAY_WIDGET_LISTENER(widget_output_status, struct output_status_state,
-                             output_status_update_cb, get_state)
- ZMK_SUBSCRIPTION(widget_output_status, zmk_endpoint_changed);
- // We don't get an endpoint changed event when the active profile connects/disconnects
- // but there wasn't another endpoint to switch from/to, so update on BLE events too.
- #if defined(CONFIG_ZMK_BLE)
- ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
- #endif
- 
- int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent) {
-     widget->obj = lv_label_create(parent);
- 
-     sys_slist_append(&widgets, &widget->node);
- 
-     widget_output_status_init();
-     return 0;
- }
- 
- lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status *widget) {
-     return widget->obj;
- }
- 
+/* TODO: charging animation START
+
+LV_IMG_DECLARE(battery);
+LV_IMG_DECLARE(battery_mask);
+LV_IMG_DECLARE(grid_black);
+
+void draw_battery_status_charging_level_big(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_img_dsc_t img_dsc;
+    lv_draw_img_dsc_init(&img_dsc);
+    lv_draw_rect_dsc_t rect_dsc;
+    init_rect_dsc(&rect_dsc, LVGL_FOREGROUND);
+    lv_draw_label_dsc_t outline_dsc;
+    init_label_dsc(&outline_dsc, LVGL_BACKGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_CENTER);
+    lv_draw_label_dsc_t label_dsc;
+    init_label_dsc(&label_dsc, LVGL_FOREGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_CENTER);
+
+    lv_canvas_draw_img(canvas, 0, 65, &grid_black, &img_dsc);
+
+    // TODO: move lv_canvas_draw_img(canvas, x, y, src, style);
+    lv_canvas_draw_img(canvas, 0, 66, &battery, &img_dsc); // ref: 0, 0 (bateria)
+    // TODO: move lv_canvas_draw_rect(canvas, x, y, width, heigth, &draw_dsc).
+    // move 67
+    lv_canvas_draw_rect(canvas, 4, 70, 54 * state->battery / 100, 23,
+                        &rect_dsc); // ref: 4, 4 (blanco)
+    // TODO: move 68 - 66
+    lv_canvas_draw_img(canvas, 2, 68, &battery_mask, &img_dsc); // def: 2, 2 (fondo rallado)
+
+    char text[10] = {};
+    sprintf(text, "%i%%", state->battery);
+
+    // TODO: move funciona
+    const int y = 75; // def: 9
+    const int w = 62; // def: 62
+
+    for (int dx = -1; dx <= 1; dx++) {
+        for (int dy = -1; dy <= 1; dy++) {
+            if (dx != 0 || dy != 0) {
+                lv_canvas_draw_text(canvas, dx, y + dy, w, &outline_dsc, text);
+            }
+        }
+    }
+
+    lv_canvas_draw_text(canvas, 0, y, w, &label_dsc, text);
+
+    // if (state->charging) { }
+}
+TODO : charging animation END */
+
+static void draw_level(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_label_dsc_t label_right_dsc;
+    init_label_dsc(&label_right_dsc, LVGL_FOREGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_RIGHT);
+
+    char text[10] = {};
+
+    sprintf(text, "%i%%", state->battery);
+    lv_canvas_draw_text(canvas, 26, 19, 42, &label_right_dsc, text);
+}
+
+static void draw_charging_level(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_img_dsc_t img_dsc;
+    lv_draw_img_dsc_init(&img_dsc);
+    lv_draw_label_dsc_t label_right_dsc;
+    init_label_dsc(&label_right_dsc, LVGL_FOREGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_RIGHT);
+
+    char text[10] = {};
+
+    sprintf(text, "%i%%", state->battery);
+    lv_canvas_draw_text(canvas, 26, 19, 35, &label_right_dsc, text);
+    lv_canvas_draw_img(canvas, 62, 21, &bolt, &img_dsc);
+}
+
+void draw_battery_status(lv_obj_t *canvas, const struct status_state *state) {
+    lv_draw_label_dsc_t label_left_dsc;
+    init_label_dsc(&label_left_dsc, LVGL_FOREGROUND, &pixel_operator_mono, LV_TEXT_ALIGN_LEFT);
+    lv_canvas_draw_text(canvas, 0, 19, 25, &label_left_dsc, "BAT");
+
+    if (state->charging) {
+        // draw_battery_status_charging_level_big(canvas, state);
+        draw_charging_level(canvas, state);
+    } else {
+        draw_level(canvas, state);
+    }
+}
