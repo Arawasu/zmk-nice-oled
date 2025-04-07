@@ -24,7 +24,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "wpm.h"
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
 
+struct output_status_state;
 /**
  * luna
  **/
@@ -56,7 +58,6 @@ struct battery_status_state {
     bool usb_present;
 };
 
-static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
 static struct battery_status_state battery_status_get_state(const zmk_event_t *eh) {
     return (struct battery_status_state){
         .level = zmk_battery_state_of_charge(),
@@ -67,8 +68,6 @@ static struct battery_status_state battery_status_get_state(const zmk_event_t *e
 #endif
     };
 }
-
-
 
 static void set_battery_status(struct zmk_widget_screen *widget, struct battery_status_state state)
 {
