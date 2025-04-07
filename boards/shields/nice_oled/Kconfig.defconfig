@@ -84,6 +84,8 @@ config NICE_OLED_WIDGET_DONGLE_TEST
     default n
 
 config NICE_VIEW_WIDGET_STATUS
+    bool
+    select LV_FONT_MONTSERRAT_16
     select LV_USE_LABEL
     select LV_USE_IMG
     select LV_USE_CANVAS
@@ -186,6 +188,3 @@ endif # SHIELD_NICE_OLED || SHIELD_NICE_EPAPER
 if NICE_EPAPER_ON
 rsource "nice_epaper/Kconfig.defconfig"
 endif # NICE_EPAPER_ON
-
-
-select LV_FONT_MONTSERRAT_16
