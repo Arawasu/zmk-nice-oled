@@ -134,44 +134,30 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif
 
 void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
-    // OUTER white battery shell (29x12)
-    lv_draw_rect_dsc_t outer_dsc;
-    init_rect_dsc(&outer_dsc, LVGL_FOREGROUND);
-    outer_dsc.radius = 0;
-    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &outer_dsc);
+    lv_draw_rect_dsc_t rect_black_dsc;
+    init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
 
-    // INNER black battery fill (27x10, inside white border)
-    lv_draw_rect_dsc_t inner_dsc;
-    init_rect_dsc(&inner_dsc, LVGL_BACKGROUND);
-    inner_dsc.radius = 0;
-    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &inner_dsc);
+    lv_draw_rect_dsc_t rect_white_dsc;
+    init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
 
-    // BATTERY LEVEL (scaled white fill inside black area)
-    lv_draw_rect_dsc_t level_dsc;
-    init_rect_dsc(&level_dsc, LVGL_FOREGROUND);
-    level_dsc.radius = 0;
-    int level_width = (state->battery + 2) / 4;  // scales 0–100% → 0–25px
-    lv_canvas_draw_rect(canvas, 2, 4, level_width, 8, &level_dsc);
+    // Outer battery shell
+    lv_canvas_draw_rect(canvas, 0, 2, 29, 13, &rect_white_dsc);
+    // Inner background
+    lv_canvas_draw_rect(canvas, 1, 3, 27, 11, &rect_black_dsc);
+    // Battery fill
+    lv_canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 9, &rect_white_dsc);
+    // Nub
+    lv_canvas_draw_rect(canvas, 30, 5, 3, 7, &rect_white_dsc);
+    lv_canvas_draw_rect(canvas, 31, 6, 1, 5, &rect_black_dsc);
 
-    // NUB outline (3x6)
-    lv_draw_rect_dsc_t nub_dsc;
-    init_rect_dsc(&nub_dsc, LVGL_FOREGROUND);
-    nub_dsc.radius = 0;
-    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &nub_dsc);
-
-    // NUB inner fill (1x4), creates the 1px padding effect
-    lv_draw_rect_dsc_t nub_fill_dsc;
-    init_rect_dsc(&nub_fill_dsc, LVGL_BACKGROUND);
-    nub_fill_dsc.radius = 0;
-    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &nub_fill_dsc);
-
-    // ⚡️ Charging icon centered inside battery
+    // Charging icon (bolt)
     if (state->charging) {
         lv_draw_img_dsc_t img_dsc;
         lv_draw_img_dsc_init(&img_dsc);
-        lv_canvas_draw_img(canvas, 9, 3, &bolt, &img_dsc);  // Adjust if needed
+        lv_canvas_draw_img(canvas, 9, 2, &bolt, &img_dsc);
     }
 }
+
 
 
 /**
