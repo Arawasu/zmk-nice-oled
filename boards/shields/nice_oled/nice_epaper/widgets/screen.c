@@ -22,11 +22,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "profile.h"
 #include "screen.h"
 #include "wpm.h"
-#include "bolt.c"
 
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
-LV_IMG_DECLARE(bolt);
 
 struct output_status_state {
     struct zmk_endpoint_instance selected_endpoint;
@@ -135,21 +133,36 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 #endif
 
 void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
-    lv_draw_rect_dsc_t rect_black_dsc;
-    init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
-    lv_draw_rect_dsc_t rect_white_dsc;
-    init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
+    // Init descriptors
+    lv_draw_rect_dsc_t rect_fg_dsc;
+    lv_draw_rect_dsc_t rect_bg_dsc;
+    lv_draw_rect_dsc_init(&rect_fg_dsc);
+    lv_draw_rect_dsc_init(&rect_bg_dsc);
+    rect_fg_dsc.bg_color = lv_color_white();
+    rect_fg_dsc.border_width = 0;
+    rect_fg_dsc.radius = 0;
+    rect_bg_dsc.bg_color = lv_color_black();
+    rect_bg_dsc.border_width = 0;
+    rect_bg_dsc.radius = 0;
 
-    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_white_dsc);
-    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_black_dsc);
-    lv_canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 8, &rect_white_dsc);
-    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_white_dsc);
-    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_black_dsc);
+    // Battery outer shell
+    lv_canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_fg_dsc);   // border
+    lv_canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_bg_dsc);   // interior
 
+    // Battery fill level (scale 0–100% to 0–27 px)
+    int fill = (state->battery * 27 + 99) / 100;
+    if (fill > 27) fill = 27;
+    lv_canvas_draw_rect(canvas, 2, 4, fill, 8, &rect_fg_dsc);  // filled bar
+
+    // Battery terminal nub
+    lv_canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_fg_dsc);    // white outer
+    lv_canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_bg_dsc);    // black center
+
+    // Optional charging bolt overlay
     if (state->charging) {
         lv_draw_img_dsc_t img_dsc;
         lv_draw_img_dsc_init(&img_dsc);
-        lv_canvas_draw_img(canvas, 9, -1, &bolt, &img_dsc);
+        lv_canvas_draw_img(canvas, 9, 3, &bolt, &img_dsc); // bolt centered in battery
     }
 }
 
