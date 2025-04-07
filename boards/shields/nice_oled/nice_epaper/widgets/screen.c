@@ -262,7 +262,7 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
 
 #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
     zmk_widget_luna_init(&luna_widget, canvas);
-    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_MID, 0, 30);
+    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_MID, 20, 15);
     #endif
 
 // #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)
