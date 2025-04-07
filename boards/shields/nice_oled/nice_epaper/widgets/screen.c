@@ -200,7 +200,7 @@ static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status
     lv_canvas_draw_text(canvas, 0, 0, 64, &label_dsc, output_text);
 
     /*** Your other widgets ***/
-    draw_wpm_status(canvas, state);
+    //draw_wpm_status(canvas, state);
     draw_profile_status(canvas, state);
     draw_layer_status(canvas, state);
 
@@ -281,7 +281,7 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent)
 
     sys_slist_append(&widgets, &widget->node);
     widget_layer_status_init();
-    widget_wpm_status_init();
+    //widget_wpm_status_init();
     widget_output_status_init();
     widget_battery_status_init();
 
