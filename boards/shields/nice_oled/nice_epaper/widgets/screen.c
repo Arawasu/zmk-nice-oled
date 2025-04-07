@@ -23,6 +23,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "screen.h"
 #include "wpm.h"
 
+extern const lv_img_dsc_t bolt;
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static void draw_canvas(lv_obj_t *widget, lv_color_t cbuf[], const struct status_state *state);
 
