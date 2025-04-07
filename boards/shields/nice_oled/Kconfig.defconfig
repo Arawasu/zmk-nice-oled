@@ -186,3 +186,6 @@ endif # SHIELD_NICE_OLED || SHIELD_NICE_EPAPER
 if NICE_EPAPER_ON
 rsource "nice_epaper/Kconfig.defconfig"
 endif # NICE_EPAPER_ON
+
+
+select LV_FONT_MONTSERRAT_16
