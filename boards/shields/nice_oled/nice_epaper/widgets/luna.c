@@ -48,9 +48,9 @@
  static const lv_img_dsc_t *mod_sneak[] = {&dog_sneak1_90, &dog_sneak2_90};
  
  // HID locks → bark
- static const lv_img_dsc_t *bark_imgs[] = {&dog_bark1_90,  &dog_bark2_90};
+ static const lv_img_dsc_t *bark_imgs[] = {&dog_bark1_90, &dog_bark2_90};
  
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
  #define SRC(arr) ((const void **)(arr)), ARRAY_SIZE(arr)
  
  enum anim_state {
@@ -68,8 +68,8 @@
  // Our combined global state
  struct luna_state {
      uint8_t wpm;
-     uint8_t mods;
-     uint8_t indicators;
+     uint8_t mods;       // Real-time held mods
+     uint8_t indicators; // Caps/Num/Scroll lock bits
  };
  
  static struct luna_state g_luna_state = {0, 0, 0};
@@ -96,7 +96,7 @@
      // 1) If CapsLock/NumLock/ScrollLock → bark
      if (s.indicators & (LED_CLCK | LED_NLCK | LED_SLCK)) {
          if (current_anim_state != ANIM_OVERRIDE) {
-             lv_animimg_set_src(animimg, (const void **)bark_imgs, 2);
+             lv_animimg_set_src(animimg, bark_imgs, 2);
              lv_animimg_set_duration(animimg, 200);
              lv_animimg_set_repeat_count(animimg, LV_ANIM_REPEAT_INFINITE);
              lv_animimg_start(animimg);
@@ -110,7 +110,7 @@
      const lv_img_dsc_t **frames = get_modifier_frames(s.mods, &frames_count);
      if (frames) {
          if (current_anim_state != ANIM_OVERRIDE) {
-             lv_animimg_set_src(animimg, (const void **)frames, frames_count);
+             lv_animimg_set_src(animimg, frames, frames_count);
              lv_animimg_set_duration(animimg, 200);
              lv_animimg_set_repeat_count(animimg, LV_ANIM_REPEAT_INFINITE);
              lv_animimg_start(animimg);
@@ -162,9 +162,10 @@
          g_luna_state.wpm = zmk_wpm_get_state();
      }
  
-     // If it’s a keycode event => update mods
+     // If it’s a keycode event => update real-time mods
      if (as_zmk_keycode_state_changed(eh)) {
-         g_luna_state.mods = zmk_hid_get_explicit_mods();
+         // The magic fix: use zmk_hid_get_held_mods() to reflect physically held keys
+         g_luna_state.mods = zmk_hid_get_held_mods();
      }
  
      // If it’s a HID indicators event => update lock bits
@@ -194,7 +195,9 @@
  
  int zmk_widget_luna_init(struct zmk_widget_luna *widget, lv_obj_t *parent) {
      widget->obj = lv_animimg_create(parent);
-     lv_obj_align(widget->obj, LV_ALIGN_TOP_LEFT, 66, 22); // or any coords you like
+     // For a more “centered” position, tweak alignment as needed:
+     // lv_obj_align(widget->obj, LV_ALIGN_CENTER, 0, 0);
+     lv_obj_align(widget->obj, LV_ALIGN_TOP_LEFT, 66, 22);
  
      sys_slist_append(&widgets, &widget->node);
      widget_luna_init();
