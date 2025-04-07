@@ -139,10 +139,10 @@ static void draw_battery(lv_obj_t *canvas, const struct status_state *state) {
     lv_draw_rect_dsc_t fill_dsc;
     init_rect_dsc(&fill_dsc, LVGL_FOREGROUND);
 
-    const int x = 108; // Adjust if needed
+    const int x = 48;  // Instead of 108
     const int y = 3;
-    const int width = 20;
-    const int height = 10;
+    const int width = 16;
+    const int height = 8;    
 
     // Outline
     lv_canvas_draw_rect(canvas, x, y, width, height, &border_dsc);
