@@ -13,3 +13,4 @@ struct zmk_widget_screen {
 
 int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent);
 lv_obj_t *zmk_widget_screen_obj(struct zmk_widget_screen *widget);
+

@@ -148,12 +148,17 @@ static void draw_label(lv_obj_t *canvas, const struct status_state *state) {
 }
 
 void draw_wpm_status(lv_obj_t *canvas, const struct status_state *state) {
-    draw_gauge(canvas, state);
-    draw_needle(canvas, state);
-#if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM_LUNA)
-#else
-    draw_grid(canvas);
-    draw_graph(canvas, state);
-#endif
-    draw_label(canvas, state);
+    #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM) && IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM_LUNA)
+        // Show Luna only – skip everything else
+        draw_label(canvas, state);
+    #elif IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
+        // Show gauge/needle/graph if Luna isn't enabled
+        draw_gauge(canvas, state);
+        draw_needle(canvas, state);
+        draw_grid(canvas);
+        draw_graph(canvas, state);
+        draw_label(canvas, state);
+    #else
+        // No WPM at all
+    #endif
 }

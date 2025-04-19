@@ -83,6 +83,10 @@ config NICE_OLED_WIDGET_DONGLE_TEST
     bool "Enable test widget on dongle"
     default n
 
+config LV_FONT_MONTSERRAT_16
+    bool "Enable Montserrat 16 font"
+    default y
+
 config NICE_VIEW_WIDGET_STATUS
     select LV_USE_LABEL
     select LV_USE_IMG
