@@ -1,4 +1,11 @@
-# nice!oled - nice!epaper
+# NOTE
+This fork includes several changes to mctechnology's zmk-nice-oled repo:
+* Removed the WPM graph and typing activity meter.
+* Retained battery level, Bluetooth connection status (with profile indicator), and current layer label.
+* Luna is now horizontally centered and positioned lower on the screen to sit naturally above the other display elements.
+* Added lv_font_montserrat_16 to enable larger, readable icons (like LV_SYMBOL_USB, LV_SYMBOL_WIFI). These are the same as in GPEye's hammerbeam repo.
+
+# ORIGINAL README
 ![nice_oled_demo](./assets/nice_oled_demo.GIF)
 ![nice_epaper_demo](./assets/nice_epaper_demo.GIF)
 
